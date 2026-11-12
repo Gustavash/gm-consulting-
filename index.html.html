@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GM Consulting — Plateforme de Gestion Interne & Sécurisée</title>
+    <!-- Tailwind CSS via CDN -->
+    <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=3lgAq7aspQ2vNdod-EJpPR8YdACqL-cOmBl39lGlZCnDdoagCSCQDqDccMtj-V_IFg-skEvr6W4yWqlQShMl-IaVzuDdlhdk3G1GWMzg5yqRd1BmJjU7TrGy3wK79vxlcrATvp6M2udukHABEIUfzWK0_5wAJVpbpOsenwuEpS_ktoGDKqbTHudJkxSWAP0kRhr4MmCzOiqIWS6ECC7B7zCh12QUhViT0oioIFEcCBqKscVY_eUXLRwZFJU04wj-b_Al-Gq_Odl4WZawcAmUSJBwm7gwokQXlBqnvwbdu8Ewps9bpACxv7niQ7mHgu4qC7dVIOwFbqq0IsggddajGg" charset="UTF-8"></script><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Police Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#090d16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Styles visuels quand le Mode Édition Directe est activé */
+        body.edit-mode-active [data-editable] {
+            outline: 1.5px dashed #f59e0b;
+            outline-offset: 2px;
+            border-radius: 6px;
+            cursor: text;
+            background-color: rgba(254, 243, 199, 0.35);
+            transition: all 0.15s ease;
+        }
+        body.edit-mode-active [data-editable]:hover {
+            outline: 2px solid #d97706;
+            background-color: rgba(254, 243, 199, 0.75);
+        }
+        body.edit-mode-active [data-editable]:focus {
+            outline: 2px solid #2563eb;
+            background-color: #ffffff;
+            color: #0f172a;
+            padding: 1px 6px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
+
+    <!-- Bandeau d'alerte Mode Édition Directe -->
+    <div id="editModeBanner" class="hidden bg-amber-500 text-navy-950 px-4 py-2 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-md z-50 relative">
+        <i data-lucide="pencil-line" class="w-4 h-4"></i>
+        <span>Mode Édition Directe ACTIVÉ : Cliquez sur n'importe quel texte ou montant ($) pour le modifier sur place.</span>
+    </div>
+
+    <!-- ================= MODALE DE CONNEXION / SÉLECTION DE RÔLE ================= -->
+    <div id="modalLogin" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden fade-in">
+            <div class="px-8 py-6 bg-navy-900 text-white text-center relative">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-navy-950 font-bold text-xl mx-auto mb-3 shadow-lg">
+                    GM
+                </div>
+                <h3 class="font-bold text-lg">GM Consulting — Connexion</h3>
+                <p class="text-xs text-slate-400 mt-1">Sélectionnez votre profil d'accès sécurisé</p>
+            </div>
+            <div class="p-8 space-y-6">
+                <!-- Choix du rôle -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="selectLoginRole('admin')" id="loginTabAdmin" class="p-3.5 rounded-2xl border-2 border-blue-600 bg-blue-50/50 text-blue-900 font-semibold text-xs flex flex-col items-center gap-2 transition-all">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-blue-600"></i>
+                        <span>Administrateur</span>
+                    </button>
+                    <button type="button" onclick="selectLoginRole('travailleur')" id="loginTabTravailleur" class="p-3.5 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-semibold text-xs flex flex-col items-center gap-2 transition-all hover:border-slate-300">
+                        <i data-lucide="user" class="w-5 h-5 text-slate-500"></i>
+                        <span>Travailleur</span>
+                    </button>
+                </div>
+
+                <!-- Formulaire Mot de passe Admin -->
+                <div id="adminLoginBox" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Mot de passe Administrateur *</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="password" id="adminPasswordInput" placeholder="Entrez le mot de passe (défaut: admin123)" class="w-full pl-10 pr-4 py-3 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Mot de passe initial par défaut : <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono font-bold text-slate-700">admin123</code></p>
+                    </div>
+                    <button type="button" onclick="submitAdminLogin()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span>Accéder à l'espace Admin</span>
+                    </button>
+                </div>
+
+                <!-- Formulaire Accès Travailleur -->
+                <div id="workerLoginBox" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Sélectionnez votre profil</label>
+                        <select id="workerSelectProfile" class="w-full px-3.5 py-3 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                            <option value="all">Collaborateur / Équipe Générale</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="submitWorkerLogin()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <span>Accéder à mon espace Travailleur</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Overlay Mobile -->
+        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 hidden lg:hidden"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-navy-900 text-slate-300 flex flex-col transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 lg:static lg:inset-0 shadow-xl">
+            <!-- Logo & Indicateur de Rôle -->
+            <div class="px-5 py-4 bg-navy-950 border-b border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-navy-950 font-bold text-base shadow-md shrink-0">
+                            <span data-editable data-type="meta" data-field="companyInitials">GM</span>
+                        </div>
+                        <div class="truncate">
+                            <span data-editable data-type="meta" data-field="companyName" class="text-white font-bold tracking-tight text-sm block leading-tight">GM Consulting</span>
+                            <span data-editable data-type="meta" data-field="companySubtitle" class="text-[10px] text-amber-400 font-semibold tracking-wider uppercase block">Executive ERP • USD</span>
+                        </div>
+                    </div>
+                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Bouton de Déconnexion / Changement de Rôle -->
+                <button onclick="openModal('modalLogin')" class="w-full py-2 px-3 bg-navy-800 hover:bg-slate-800 rounded-xl text-xs font-medium text-slate-300 hover:text-white flex items-center justify-between border border-slate-700/80 transition-colors">
+                    <div class="flex items-center gap-2 truncate">
+                        <i data-lucide="user-cog" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span id="sidebarRoleLabel" class="truncate">Mode: Admin</span>
+                    </div>
+                    <span class="text-[10px] text-amber-400 font-semibold underline">Changer</span>
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+                <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Gestion & Pilotage</p>
+                
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-blue-600 text-white shadow-sm">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Vue d'ensemble</span>
+                </button>
+
+                <button onclick="switchTab('projets')" id="nav-projets" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="briefcase" class="w-4 h-4"></i>
+                        <span>Projets & Contrats</span>
+                    </div>
+                    <span id="badge-projets" class="bg-slate-800 text-slate-300 text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+
+                <button onclick="switchTab('associes')" id="nav-associes" class="nav-btn admin-only w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                        <span>Associés & Équipe</span>
+                    </div>
+                    <span id="badge-associes" class="bg-slate-800 text-slate-300 text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+
+                <button onclick="switchTab('facturation')" id="nav-facturation" class="nav-btn admin-only w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="receipt" class="w-4 h-4"></i>
+                        <span>Facturation ($ USD)</span>
+                    </div>
+                    <span id="badge-factures" class="bg-amber-500/20 text-amber-400 text-xs py-0.5 px-2 rounded-full font-semibold">0</span>
+                </button>
+
+                <!-- Bouton Dettes Clients (Admin) -->
+                <button onclick="switchTab('dettes')" id="nav-dettes" class="nav-btn admin-only w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-rose-400"></i>
+                        <span>Dettes Clients</span>
+                    </div>
+                    <span id="badge-dettes" class="bg-rose-500/20 text-rose-400 text-xs py-0.5 px-2 rounded-full font-semibold">0</span>
+                </button>
+
+                <p class="px-3 pt-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Opérations & Ressources</p>
+
+                <button onclick="switchTab('travailleurs')" id="nav-travailleurs" class="nav-btn admin-only w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="id-card" class="w-4 h-4"></i>
+                        <span>Travailleurs & RH</span>
+                    </div>
+                    <span id="badge-travailleurs" class="bg-slate-800 text-slate-300 text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+
+                <!-- Onglet Documents pour les travailleurs -->
+                <button onclick="switchTab('mes-documents')" id="nav-mes-documents" class="nav-btn worker-only hidden w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="folder-open" class="w-4 h-4 text-amber-400"></i>
+                        <span>Mes Documents PDF</span>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('depenses')" id="nav-depenses" class="nav-btn admin-only w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="trending-down" class="w-4 h-4"></i>
+                        <span>Dépenses ($ USD)</span>
+                    </div>
+                    <span id="badge-depenses" class="bg-rose-500/20 text-rose-400 text-xs py-0.5 px-2 rounded-full font-semibold">0</span>
+                </button>
+
+                <button onclick="switchTab('inventaire')" id="nav-inventaire" class="nav-btn admin-only w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-navy-800 hover:text-white transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="package" class="w-4 h-4"></i>
+                        <span>Inventaire des Biens</span>
+                    </div>
+                    <span id="badge-inventaire" class="bg-slate-800 text-slate-300 text-xs py-0.5 px-2 rounded-full">0</span>
+                </button>
+            </nav>
+
+            <!-- Sauvegarde & Réinitialisation -->
+            <div class="p-4 border-t border-slate-800 bg-navy-950/60 space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="exportJSON()" title="Télécharger une sauvegarde" class="flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-navy-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition-colors">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>Exporter</span>
+                    </button>
+                    <label title="Restaurer une sauvegarde JSON" class="cursor-pointer flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-navy-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition-colors">
+                        <i data-lucide="upload" class="w-3.5 h-3.5 text-blue-400"></i>
+                        <span>Importer</span>
+                        <input type="file" id="importJsonInput" accept=".json" onchange="importJSON(event)" class="hidden">
+                    </label>
+                </div>
+                <button onclick="resetDemoData()" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-slate-400 hover:text-rose-400 bg-navy-900 hover:bg-navy-800 rounded-lg border border-slate-800 transition-colors">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    <span>Réinitialiser par défaut</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Zone Principale -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            
+            <!-- Header Supérieur -->
+            <header class="min-h-16 bg-white border-b border-slate-200 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-20">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 id="pageTitle" class="text-base sm:text-lg font-bold text-slate-900">Vue d'ensemble</h1>
+                            <span id="roleIndicatorBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Mode Admin</span>
+                        </div>
+                        <p id="currentDate" class="text-xs text-slate-500 hidden sm:block"></p>
+                    </div>
+                </div>
+
+                <!-- Barre d'outils rapide -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="switchTab('dettes')" class="admin-only inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition-colors shadow-sm">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+                        <span>Dettes (<span id="header-dettes-count">0</span>)</span>
+                    </button>
+
+                    <button id="btnToggleEdit" onclick="toggleEditMode()" class="admin-only inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border transition-all bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 shadow-sm">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        <span id="btnToggleEditLabel">Mode Édition Directe : OFF</span>
+                    </button>
+
+                    <button onclick="openModal('modalAssocie')" class="admin-only hidden md:inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
+                        <i data-lucide="user-plus" class="w-4 h-4 text-blue-600"></i>
+                        <span>+ Associé</span>
+                    </button>
+
+                    <button onclick="openModal('modalTravailleur')" class="admin-only hidden xl:inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
+                        <i data-lucide="id-card" class="w-4 h-4 text-indigo-600"></i>
+                        <span>+ Travailleur</span>
+                    </button>
+
+                    <button onclick="openModal('modalDepense')" class="admin-only hidden xl:inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-rose-700 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition-colors">
+                        <i data-lucide="minus-circle" class="w-4 h-4 text-rose-600"></i>
+                        <span>+ Dépense</span>
+                    </button>
+
+                    <button onclick="openModal('modalProjet')" class="admin-only inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Nouveau Projet</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Contenu Principal -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+                <!-- Filtres par Pôle d'Activité -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 px-2">
+                        <i data-lucide="filter" class="w-4 h-4 text-amber-500"></i>
+                        <span>Pôle :</span>
+                    </div>
+                    <div id="poleFilters" class="flex flex-wrap items-center gap-1.5 flex-1"></div>
+                </div>
+
+                <!-- Cartes KPIs -->
+                <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+                    <div class="admin-only bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Chiffre d'Affaires ($)</p>
+                                <h3 id="kpi-ca" class="text-2xl font-bold text-slate-900 mt-1.5">$0</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                                <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs text-slate-500">Volume total des contrats engagés</p>
+                    </div>
+
+                    <div onclick="switchTab('dettes')" class="admin-only cursor-pointer bg-white p-5 rounded-2xl border border-slate-200 hover:border-rose-300 shadow-sm transition-all">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Dettes / Reste à Payer</p>
+                                <h3 id="kpi-factures" class="text-2xl font-bold text-rose-600 mt-1.5">$0</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p id="kpi-factures-count" class="mt-3 text-xs font-medium text-rose-600">0 client(s) avec dette</p>
+                    </div>
+
+                    <div class="worker-only hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Mes Documents & Infos</p>
+                                <h3 id="kpi-worker-docs" class="text-2xl font-bold text-indigo-600 mt-1.5">0 PDF</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                                <i data-lucide="folder-open" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs text-slate-500">Dossier personnel accessible</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Projets Actifs</p>
+                                <h3 id="kpi-projets" class="text-2xl font-bold text-slate-900 mt-1.5">0</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                <i data-lucide="rocket" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p id="kpi-projets-sub" class="mt-3 text-xs text-slate-500">0 missions au total</p>
+                    </div>
+
+                    <div class="admin-only bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Bénéfice Net ($ USD)</p>
+                                <h3 id="kpi-benefice" class="text-2xl font-bold text-emerald-600 mt-1.5">$0</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                                <i data-lucide="wallet" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p id="kpi-finance-sub" class="mt-3 text-xs text-slate-500">Encaissé: $0 • Dépenses: $0</p>
+                    </div>
+
+                    <div class="worker-only hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Statut Collaborateur</p>
+                                <h3 class="text-xl font-bold text-emerald-600 mt-1.5">Actif</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-xs text-slate-500">Accès sécurisé limité</p>
+                    </div>
+                </section>
+
+                <!-- Barre de Synthèse Opérationnelle (Admin) -->
+                <section class="admin-only grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div onclick="switchTab('travailleurs')" class="cursor-pointer bg-white px-5 py-3.5 rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-sm flex items-center justify-between transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                <i data-lucide="users-round" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Masse Salariale / Mois</p>
+                                <p id="kpi-salaires-total" class="text-base font-bold text-slate-900">$0</p>
+                            </div>
+                        </div>
+                        <span id="kpi-travailleurs-count" class="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">0 employés</span>
+                    </div>
+
+                    <div onclick="switchTab('depenses')" class="cursor-pointer bg-white px-5 py-3.5 rounded-2xl border border-slate-200 hover:border-rose-300 shadow-sm flex items-center justify-between transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                                <i data-lucide="receipt-text" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Dépenses Totales</p>
+                                <p id="kpi-depenses-total" class="text-base font-bold text-rose-600">$0</p>
+                            </div>
+                        </div>
+                        <span id="kpi-depenses-count" class="text-xs font-medium text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg">0 écritures</span>
+                    </div>
+
+                    <div onclick="switchTab('inventaire')" class="cursor-pointer bg-white px-5 py-3.5 rounded-2xl border border-slate-200 hover:border-amber-300 shadow-sm flex items-center justify-between transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                                <i data-lucide="boxes" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Valeur Inventaire Biens</p>
+                                <p id="kpi-inventaire-total" class="text-base font-bold text-slate-900">$0</p>
+                            </div>
+                        </div>
+                        <span id="kpi-inventaire-count" class="text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg">0 articles</span>
+                    </div>
+                </section>
+
+                <!-- ================= VUE 1 : VUE D'ENSEMBLE (DASHBOARD) ================= -->
+                <div id="view-dashboard" class="view-section space-y-6 fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="admin-only lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h2 class="text-base font-bold text-slate-900">Revenus par Pôle d'Activité ($ USD)</h2>
+                                    <p class="text-xs text-slate-500">Répartition financière des départements GM Consulting</p>
+                                </div>
+                            </div>
+                            <div class="relative flex-1 min-h-[250px] w-full">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="worker-only hidden lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg">TC</div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-900">Espace Collaborateur — GM Consulting</h2>
+                                    <p class="text-xs text-indigo-600 font-semibold">Accès sécurisé aux projets, missions et documents</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Bienvenue sur votre interface. Vous pouvez suivre ici l'état d'avancement des projets en cours, consulter leurs documents et fiches jointes, ainsi que retrouver vos documents administratifs personnels.
+                            </p>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div class="admin-only">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-base font-bold text-slate-900">Associés & Répartition</h2>
+                                    <button onclick="switchTab('associes')" class="text-xs font-semibold text-blue-600 hover:underline">Gérer</button>
+                                </div>
+                                <div id="dashboard-associes-list" class="space-y-3"></div>
+                            </div>
+                            
+                            <div class="worker-only hidden space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">PDF</div>
+                                    <div>
+                                        <h2 class="text-sm font-bold text-slate-900">Documents Rapides</h2>
+                                        <p class="text-xs text-indigo-600 font-medium">Vos contrats et attestations</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    Accédez rapidement à l'ensemble de vos documents administratifs et fichiers personnels mis à disposition.
+                                </p>
+                                <button onclick="switchTab('mes-documents')" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
+                                    <i data-lucide="folder-open" class="w-4 h-4"></i>
+                                    <span>Consulter mes documents PDF</span>
+                                </button>
+                            </div>
+
+                            <div class="admin-only mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                                <span class="text-slate-500">Total des parts attribuées :</span>
+                                <span id="total-shares-badge" class="font-bold text-slate-900">100%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-5 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900">Projets & Contrats en cours</h2>
+                                <p class="text-xs text-slate-500">Suivi des missions GM Consulting et dossiers associés</p>
+                            </div>
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                <div class="relative">
+                                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text" id="searchProjetInput" onkeyup="renderAll()" placeholder="Rechercher projet ou client..." class="pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-60">
+                                </div>
+                                <select id="filterStatutSelect" onchange="renderAll()" class="px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium">
+                                    <option value="Tous">Tous les statuts</option>
+                                    <option value="En cours">En cours</option>
+                                    <option value="En attente">En attente</option>
+                                    <option value="Terminé">Terminé</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                        <th class="py-3.5 px-6">Mission / Contrat</th>
+                                        <th class="py-3.5 px-6">Client</th>
+                                        <th class="py-3.5 px-6">Pôle</th>
+                                        <th class="py-3.5 px-6 admin-only">Budget ($ USD)</th>
+                                        <th class="py-3.5 px-6">Associé Référent</th>
+                                        <th class="py-3.5 px-6">Statut</th>
+                                        <th class="py-3.5 px-6">Dossier & Fichiers</th>
+                                        <th class="py-3.5 px-6 text-right admin-only">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projetsTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VUE 2 : PROJETS & CONTRATS (COMPLET) ================= -->
+                <div id="view-projets" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-900">Portefeuille Complet des Projets & Contrats</h2>
+                                <p class="text-xs text-slate-500">Vue d'ensemble des mandats et gestion des pièces jointes</p>
+                            </div>
+                            <button onclick="openModal('modalProjet')" class="admin-only inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Ajouter un projet</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                        <th class="py-3.5 px-6">Mission / Contrat</th>
+                                        <th class="py-3.5 px-6">Client</th>
+                                        <th class="py-3.5 px-6">Pôle</th>
+                                        <th class="py-3.5 px-6">Associé Référent</th>
+                                        <th class="py-3.5 px-6 admin-only">Budget ($ USD)</th>
+                                        <th class="py-3.5 px-6">Statut</th>
+                                        <th class="py-3.5 px-6">Dossier & Fichiers</th>
+                                        <th class="py-3.5 px-6 text-right admin-only">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projetsFullTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VUE 3 : ASSOCIÉS (ADMIN) ================= -->
+                <div id="view-associes" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Associés & Direction de GM Consulting</h2>
+                            <p class="text-xs text-slate-500">Gestion des quotes-parts et de la direction</p>
+                        </div>
+                        <button onclick="openModal('modalAssocie')" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-navy-900 hover:bg-navy-800 rounded-xl shadow-sm">
+                            <i data-lucide="user-plus" class="w-4 h-4 text-amber-400"></i>
+                            <span>Ajouter un Associé</span>
+                        </button>
+                    </div>
+
+                    <div id="associesGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- ================= VUE 4 : FACTURATION (ADMIN) ================= -->
+                <div id="view-facturation" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-900">Facturation & Encaissements ($ USD)</h2>
+                                <p class="text-xs text-slate-500">Suivi détaillé : montant du contrat, acompte payé et reste dû</p>
+                            </div>
+                            <button onclick="openModal('modalFacture')" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm">
+                                <i data-lucide="file-plus" class="w-4 h-4"></i>
+                                <span>Nouvelle Facture ($)</span>
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                        <th class="py-3.5 px-6">N° Facture</th>
+                                        <th class="py-3.5 px-6">Client</th>
+                                        <th class="py-3.5 px-6">Pôle</th>
+                                        <th class="py-3.5 px-6">Date</th>
+                                        <th class="py-3.5 px-6">Total Contrat</th>
+                                        <th class="py-3.5 px-6">Montant Payé</th>
+                                        <th class="py-3.5 px-6">Reste à Payer (Dette)</th>
+                                        <th class="py-3.5 px-6">Situation Client</th>
+                                        <th class="py-3.5 px-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="facturesTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VUE 4B : DETTES CLIENTS (ADMIN) ================= -->
+                <div id="view-dettes" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-2.5">
+                                    <h2 class="text-lg font-bold text-slate-900">Suivi des Dettes Clients & Soldes à Payer</h2>
+                                    <span id="dettes-total-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">$0 dû</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">Liste des clients ayant un solde impayé sur leur contrat. Une fois soldé, le client passe automatiquement « En ordre ».</p>
+                            </div>
+                            <button onclick="openModal('modalFacture')" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm">
+                                <i data-lucide="file-plus" class="w-4 h-4"></i>
+                                <span>Nouvelle Facture / Contrat</span>
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                        <th class="py-3.5 px-6">Client</th>
+                                        <th class="py-3.5 px-6">N° Facture</th>
+                                        <th class="py-3.5 px-6">Pôle</th>
+                                        <th class="py-3.5 px-6">Total Contrat ($)</th>
+                                        <th class="py-3.5 px-6">Montant Payé ($)</th>
+                                        <th class="py-3.5 px-6">Dette Restante ($)</th>
+                                        <th class="py-3.5 px-6">Situation</th>
+                                        <th class="py-3.5 px-6 text-right">Règlement</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dettesTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VUE 5 : TRAVAILLEURS & RH (ADMIN) ================= -->
+                <div id="view-travailleurs" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Travailleurs, Salaires & Dossiers PDF</h2>
+                            <p class="text-xs text-slate-500">Gestion du personnel et des fiches de paie</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="hidden sm:block text-right pr-2 border-r border-slate-200">
+                                <span class="text-[11px] uppercase font-semibold text-slate-400 block">Masse salariale mensuelle</span>
+                                <span id="rh-total-payroll" class="text-base font-bold text-indigo-600">$0</span>
+                            </div>
+                            <button onclick="openModal('modalTravailleur')" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                <span>+ Ajouter un travailleur</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="travailleursGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- ================= VUE 5B : MES DOCUMENTS (TRAVAILLEUR) ================= -->
+                <div id="view-mes-documents" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Mes Documents Personnels & Contrats</h2>
+                            <p class="text-xs text-slate-500">Consultez et téléchargez vos documents PDF administratifs</p>
+                        </div>
+                        <div class="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-semibold">
+                            Espace Sécurisé Travailleur
+                        </div>
+                    </div>
+                    <div id="workerDocumentsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- ================= VUE 6 : DÉPENSES (ADMIN) ================= -->
+                <div id="view-depenses" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-900">Registre des Dépenses — GM Consulting ($ USD)</h2>
+                                <p class="text-xs text-slate-500">Sorties de fonds de l'entreprise</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <select id="filterDepenseCat" onchange="renderDepenses()" class="px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-700 font-medium">
+                                    <option value="Toutes">Toutes les catégories</option>
+                                    <option value="Salaires">Salaires</option>
+                                    <option value="Loyer & Bureaux">Loyer & Bureaux</option>
+                                    <option value="Équipement & IT">Équipement & IT</option>
+                                    <option value="Déplacements">Déplacements</option>
+                                    <option value="Événementiel">Événementiel</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Taxes & Frais">Taxes & Frais</option>
+                                    <option value="Autres">Autres</option>
+                                </select>
+                                <button onclick="openModal('modalDepense')" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                    <span>+ Nouvelle dépense</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                        <th class="py-3.5 px-6">Date</th>
+                                        <th class="py-3.5 px-6">Libellé / Description</th>
+                                        <th class="py-3.5 px-6">Catégorie</th>
+                                        <th class="py-3.5 px-6">Mode de paiement</th>
+                                        <th class="py-3.5 px-6">Montant ($ USD)</th>
+                                        <th class="py-3.5 px-6">Statut</th>
+                                        <th class="py-3.5 px-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="depensesTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VUE 7 : INVENTAIRE (ADMIN) ================= -->
+                <div id="view-inventaire" class="view-section hidden space-y-6 fade-in">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-900">Inventaire des Biens & Équipements ($ USD)</h2>
+                                <p class="text-xs text-slate-500">Patrimoine matériel de GM Consulting</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="relative">
+                                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text" id="searchInventaireInput" onkeyup="renderInventaire()" placeholder="Rechercher un bien, réf..." class="pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-56">
+                                </div>
+                                <button onclick="openModal('modalInventaire')" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-navy-900 hover:bg-navy-800 rounded-xl shadow-sm">
+                                    <i data-lucide="plus" class="w-4 h-4 text-amber-400"></i>
+                                    <span>+ Ajouter un bien</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                        <th class="py-3.5 px-6">Désignation du Bien</th>
+                                        <th class="py-3.5 px-6">Catégorie</th>
+                                        <th class="py-3.5 px-6">N° Série / Réf</th>
+                                        <th class="py-3.5 px-6">Qté</th>
+                                        <th class="py-3.5 px-6">Valeur Unitaire ($)</th>
+                                        <th class="py-3.5 px-6">Valeur Totale ($)</th>
+                                        <th class="py-3.5 px-6">État</th>
+                                        <th class="py-3.5 px-6">Affectation / Lieu</th>
+                                        <th class="py-3.5 px-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventaireTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ================= MODALES ================= -->
+    <div id="modalProjet" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base">Nouveau Projet / Contrat ($ USD)</h3>
+                <button onclick="closeModal('modalProjet')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleCreateProjet(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Titre du projet *</label>
+                    <input type="text" id="projTitre" required placeholder="Ex: Audit Stratégique" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Client *</label>
+                        <input type="text" id="projClient" required placeholder="Nom du client" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Pôle *</label>
+                        <select id="projPole" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Conseil & Audit">Conseil & Audit</option>
+                            <option value="Transformation Digitale">Transformation Digitale</option>
+                            <option value="Branding">Branding</option>
+                            <option value="Événementiel">Événementiel</option>
+                            <option value="Management d'Artistes">Management d'Artistes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Budget ($ USD) *</label>
+                        <input type="number" id="projBudget" required min="50" step="50" placeholder="25000" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Associé Référent *</label>
+                        <select id="projAssocie" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Joindre des documents PDF / Fichiers du projet</label>
+                    <input type="file" id="projFilesInput" accept="application/pdf,.pdf,.doc,.docx,.xls,.xlsx" multiple class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-slate-50">
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalProjet')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale Edition Projet (Admin) -->
+    <div id="modalEditProjet" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base">Modifier le Projet / Contrat</h3>
+                <button onclick="closeModal('modalEditProjet')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleUpdateProjet(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editProjId">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Titre du projet *</label>
+                    <input type="text" id="editProjTitre" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Client *</label>
+                        <input type="text" id="editProjClient" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Pôle *</label>
+                        <select id="editProjPole" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Conseil & Audit">Conseil & Audit</option>
+                            <option value="Transformation Digitale">Transformation Digitale</option>
+                            <option value="Branding">Branding</option>
+                            <option value="Événementiel">Événementiel</option>
+                            <option value="Management d'Artistes">Management d'Artistes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Budget ($ USD) *</label>
+                        <input type="number" id="editProjBudget" required min="50" step="50" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Statut *</label>
+                        <select id="editProjStatut" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="En attente">En attente</option>
+                            <option value="En cours">En cours</option>
+                            <option value="Terminé">Terminé</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Ajouter de nouveaux fichiers au projet</label>
+                    <input type="file" id="editProjFilesInput" accept="application/pdf,.pdf,.doc,.docx,.xls,.xlsx" multiple class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-slate-50">
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalEditProjet')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale Gestion Dossier / Fichiers Projet -->
+    <div id="modalProjetFiles" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 id="modalProjFilesTitle" class="font-bold text-base">Dossier du projet</h3>
+                <button onclick="closeModal('modalProjetFiles')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Liste des documents et fichiers associés à ce contrat :</p>
+                <div id="modalProjFilesList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+                <div class="admin-only pt-4 border-t border-slate-100">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Ajouter un fichier supplémentaire</label>
+                    <div class="flex gap-2">
+                        <input type="file" id="modalAddFileInput" accept="application/pdf,.pdf,.doc,.docx,.xls,.xlsx" multiple class="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-xl bg-slate-50">
+                        <button type="button" onclick="uploadMoreFilesToProject()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold">Ajouter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalAssocie" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base">Ajouter un Associé</h3>
+                <button onclick="closeModal('modalAssocie')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleCreateAssocie(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Nom complet *</label>
+                    <input type="text" id="assocNom" required placeholder="Ex: Jean-Marc Kabila" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Fonction *</label>
+                    <input type="text" id="assocRole" required placeholder="Ex: Associé Gérant" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Pôle</label>
+                        <select id="assocPole" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Conseil & Audit">Conseil & Audit</option>
+                            <option value="Transformation Digitale">Transformation Digitale</option>
+                            <option value="Branding">Branding</option>
+                            <option value="Événementiel">Événementiel</option>
+                            <option value="Management d'Artistes">Management d'Artistes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Part (%)</label>
+                        <input type="number" id="assocPart" required min="0" max="100" value="20" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalAssocie')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-navy-900 hover:bg-navy-800 rounded-xl">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale Facture (Création / Édition avec Montant Payé & Reste à Payer) -->
+    <div id="modalFacture" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 id="modalFactureTitle" class="font-bold text-base">Émettre une Facture ($ USD)</h3>
+                <button onclick="closeModal('modalFacture')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleSaveFacture(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editFacId">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Client *</label>
+                    <input type="text" id="facClient" required placeholder="Nom du client" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Pôle *</label>
+                    <select id="facPole" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="Conseil & Audit">Conseil & Audit</option>
+                        <option value="Transformation Digitale">Transformation Digitale</option>
+                        <option value="Branding">Branding</option>
+                        <option value="Événementiel">Événementiel</option>
+                        <option value="Management d'Artistes">Management d'Artistes</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Total Contrat ($) *</label>
+                        <input type="number" id="facMontant" required min="1" step="0.01" oninput="updateFactureRestePreview()" placeholder="2000" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Montant Payé ($) *</label>
+                        <input type="number" id="facMontantPaye" required min="0" step="0.01" oninput="updateFactureRestePreview()" placeholder="1800" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Aperçu automatique du Reste / Statut -->
+                <div id="facPreviewBox" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                    <div>
+                        <span class="text-slate-500 block">Reste à payer (Dette) :</span>
+                        <span id="facPreviewReste" class="text-sm font-bold text-rose-600">$0</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-500 block">Situation :</span>
+                        <span id="facPreviewStatut" class="font-bold text-emerald-700">En ordre</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalFacture')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale Règlement de Dette -->
+    <div id="modalReglerDette" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base">Encaisser un Paiement / Solder la Dette</h3>
+                <button onclick="closeModal('modalReglerDette')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleReglerDette(event)" class="p-6 space-y-4">
+                <input type="hidden" id="reglerFacId">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Client :</span>
+                        <span id="reglerClientNom" class="font-bold text-slate-900"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Montant total du contrat :</span>
+                        <span id="reglerTotalContrat" class="font-bold text-slate-900"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Déjà payé :</span>
+                        <span id="reglerDejaPaye" class="font-bold text-emerald-600"></span>
+                    </div>
+                    <div class="flex justify-between pt-2 border-t border-slate-200">
+                        <span class="text-slate-700 font-semibold">Dette restante à payer :</span>
+                        <span id="reglerResteDu" class="font-bold text-rose-600 text-sm"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Montant versé aujourd'hui ($ USD) *</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="reglerNouveauVersement" required min="1" step="0.01" class="flex-1 px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button type="button" onclick="solderToutLeReste()" class="px-3 py-2 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-xl">Tout solder</button>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalReglerDette')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl">Valider le paiement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale Aperçu / Impression Facture Détaillée -->
+    <div id="modalFactureDetail" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base">Détail de la Facture Client</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        <span>Imprimer</span>
+                    </button>
+                    <button onclick="closeModal('modalFactureDetail')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            <div id="factureDetailContent" class="p-8 space-y-6 bg-white"></div>
+        </div>
+    </div>
+
+    <div id="modalTravailleur" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden fade-in max-h-[92vh] flex flex-col">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between shrink-0">
+                <h3 class="font-bold text-base">Ajouter un Travailleur & PDF</h3>
+                <button onclick="closeModal('modalTravailleur')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleCreateTravailleur(event)" class="p-6 space-y-4 overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Nom complet *</label>
+                    <input type="text" id="travNom" required placeholder="Ex: Sarah Mukendi" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Poste *</label>
+                        <input type="text" id="travPoste" required placeholder="Ex: Consultante" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Pôle</label>
+                        <select id="travPole" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="Conseil & Audit">Conseil & Audit</option>
+                            <option value="Transformation Digitale">Transformation Digitale</option>
+                            <option value="Branding">Branding</option>
+                            <option value="Événementiel">Événementiel</option>
+                            <option value="Management d'Artistes">Management d'Artistes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Salaire ($ USD) *</label>
+                        <input type="number" id="travSalaire" required min="0" step="10" placeholder="1200" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Date d'embauche</label>
+                        <input type="date" id="travDate" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Documents PDF (Contrat, CV...)</label>
+                    <div class="mt-1 flex justify-center px-4 py-4 border-2 border-slate-300 border-dashed rounded-xl hover:border-indigo-400 bg-slate-50/70">
+                        <div class="text-center">
+                            <i data-lucide="file-up" class="mx-auto h-7 w-7 text-indigo-500"></i>
+                            <div class="mt-1 flex text-xs text-slate-600 justify-center">
+                                <label for="travDocsPdf" class="relative cursor-pointer rounded-md font-semibold text-indigo-600 hover:text-indigo-500">
+                                    <span>Sélectionner des fichiers PDF</span>
+                                    <input id="travDocsPdf" type="file" accept="application/pdf,.pdf" multiple onchange="previewSelectedPdfs(event)" class="sr-only">
+                                </label>
+                            </div>
+                            <div id="selectedPdfsPreview" class="mt-2 flex flex-wrap gap-1.5 justify-center"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalTravailleur')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalPdfViewer" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/75 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl h-[88vh] flex flex-col overflow-hidden fade-in">
+            <div class="px-6 py-3.5 bg-navy-900 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5 truncate">
+                    <i data-lucide="file-text" class="w-5 h-5 text-rose-400 shrink-0"></i>
+                    <h3 id="pdfViewerTitle" class="font-bold text-sm truncate">Document PDF</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a id="pdfViewerDownload" href="#" download="document.pdf" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Télécharger</span>
+                    </a>
+                    <button onclick="closeModal('modalPdfViewer')" class="p-1.5 text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            <div class="flex-1 bg-slate-200">
+                <iframe id="pdfViewerFrame" src="" class="w-full h-full border-0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalDepense" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base">Enregistrer une Dépense ($ USD)</h3>
+                <button onclick="closeModal('modalDepense')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleCreateDepense(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Libellé *</label>
+                    <input type="text" id="depLibelle" required placeholder="Ex: Loyer Bureau" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Catégorie *</label>
+                        <select id="depCategorie" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="Salaires">Salaires</option>
+                            <option value="Loyer & Bureaux">Loyer & Bureaux</option>
+                            <option value="Équipement & IT">Équipement & IT</option>
+                            <option value="Déplacements">Déplacements</option>
+                            <option value="Événementiel">Événementiel</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Taxes & Frais">Taxes & Frais</option>
+                            <option value="Autres">Autres</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Montant ($) *</label>
+                        <input type="number" id="depMontant" required min="1" step="0.01" placeholder="1500" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Date *</label>
+                        <input type="date" id="depDate" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Paiement</label>
+                        <select id="depMode" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <option value="Virement Bancaire">Virement Bancaire</option>
+                            <option value="Espèces ($ USD)">Espèces ($ USD)</option>
+                            <option value="Carte Corporate">Carte Corporate</option>
+                            <option value="Mobile Money">Mobile Money</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalDepense')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalInventaire" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden fade-in">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base">Ajouter un Bien à l'Inventaire ($ USD)</h3>
+                <button onclick="closeModal('modalInventaire')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleCreateInventaire(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Nom du bien *</label>
+                        <input type="text" id="invNom" required placeholder="Ex: MacBook Pro" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Catégorie *</label>
+                        <select id="invCategorie" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="Informatique & IT">Informatique & IT</option>
+                            <option value="Sonorisation & Événementiel">Sonorisation & Événementiel</option>
+                            <option value="Mobilier de Bureau">Mobilier de Bureau</option>
+                            <option value="Audiovisuel & Photo">Audiovisuel & Photo</option>
+                            <option value="Véhicules & Logistique">Véhicules & Logistique</option>
+                            <option value="Autres">Autres</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Réf</label>
+                        <input type="text" id="invRef" placeholder="SN-01" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Qté *</label>
+                        <input type="number" id="invQuantite" required min="1" value="1" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Valeur Unitaire ($) *</label>
+                        <input type="number" id="invValeur" required min="0" step="10" placeholder="2400" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">État</label>
+                        <select id="invEtat" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="Neuf">Neuf</option>
+                            <option value="Bon état">Bon état</option>
+                            <option value="À réparer">À réparer</option>
+                            <option value="Hors service">Hors service</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Emplacement</label>
+                        <input type="text" id="invLieu" placeholder="Siège" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalInventaire')" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Annuler</button>
+                    <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-navy-900 hover:bg-navy-800 rounded-xl">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ================= LOGIQUE JAVASCRIPT ================= -->
+    <script>
+        const STORAGE_KEY = "gm_consulting_usd_secure_v7";
+
+        const POLES = [
+            "Tous",
+            "Conseil & Audit",
+            "Transformation Digitale",
+            "Branding",
+            "Événementiel",
+            "Management d'Artistes"
+        ];
+
+        const POLE_COLORS = {
+            "Conseil & Audit": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", hex: "#2563eb" },
+            "Transformation Digitale": { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", hex: "#4f46e5" },
+            "Branding": { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", hex: "#d97706" },
+            "Événementiel": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", hex: "#059669" },
+            "Management d'Artistes": { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", hex: "#7c3aed" }
+        };
+
+        const DEFAULT_DATA = {
+            meta: {
+                companyInitials: "GM",
+                companyName: "GM Consulting",
+                companySubtitle: "Executive ERP • USD",
+                adminPassword: "admin123"
+            },
+            associes: [
+                { id: 1, nom: "Associé Principal 1", role: "Associé Fondateur & DG", pole: "Conseil & Audit", part: 40, email: "associe1@gmconsulting.com" },
+                { id: 2, nom: "Associé Principal 2", role: "Associé — Tech", pole: "Transformation Digitale", part: 30, email: "associe2@gmconsulting.com" },
+                { id: 3, nom: "Associé Principal 3", role: "Associé — Événementiel", pole: "Événementiel", part: 30, email: "associe3@gmconsulting.com" }
+            ],
+            projets: [
+                { id: 101, titre: "Audit Financier & Optimisation", client: "Global Horizon Bank", pole: "Conseil & Audit", budget: 32000, statut: "En cours", associe: "Associé Principal 1", documents: [] },
+                { id: 102, titre: "Déploiement ERP Cloud", client: "NovaTech Africa", pole: "Transformation Digitale", budget: 45000, statut: "En cours", associe: "Associé Principal 2", documents: [] },
+                { id: 103, titre: "Refonte Identité de Marque", client: "Maison Lumière", pole: "Branding", budget: 18500, statut: "Terminé", associe: "Associé Principal 3", documents: [] },
+                { id: 104, titre: "Production Gala Annuel VIP", client: "Festival Écho Urbain", pole: "Événementiel", budget: 50000, statut: "En cours", associe: "Associé Principal 3", documents: [] },
+                { id: 105, titre: "Management Tournée & Labels", client: "Kora & Les Voix", pole: "Management d'Artistes", budget: 27500, statut: "En attente", associe: "Associé Principal 3", documents: [] }
+            ],
+            factures: [
+                { id: "INV-2026-001", client: "Global Horizon Bank", pole: "Conseil & Audit", date: "2026-11-02", montant: 2000, montantPaye: 1800 },
+                { id: "INV-2026-002", client: "NovaTech Africa", pole: "Transformation Digitale", date: "2026-11-05", montant: 22500, montantPaye: 10000 },
+                { id: "INV-2026-003", client: "Maison Lumière", pole: "Branding", date: "2026-11-08", montant: 18500, montantPaye: 18500 }
+            ],
+            travailleurs: [
+                { id: 201, nom: "Sarah Mukendi", poste: "Consultante Senior", pole: "Conseil & Audit", salaire: 1800, dateEmbauche: "2025-03-15", statut: "Actif", documents: [] },
+                { id: 202, nom: "David Ilunga", poste: "Ingénieur Tech", pole: "Transformation Digitale", salaire: 2100, dateEmbauche: "2025-06-01", statut: "Actif", documents: [] },
+                { id: 203, nom: "Chloé Nsimba", poste: "Coordinatrice Événement", pole: "Événementiel", salaire: 1500, dateEmbauche: "2026-01-10", statut: "Actif", documents: [] }
+            ],
+            depenses: [
+                { id: 301, date: "2026-11-01", libelle: "Loyer Bureaux Siège", categorie: "Loyer & Bureaux", mode: "Virement Bancaire", montant: 2500, statut: "Payée" },
+                { id: 302, date: "2026-11-05", libelle: "Masse salariale", categorie: "Salaires", mode: "Virement Bancaire", montant: 5400, statut: "Payée" }
+            ],
+            inventaire: [
+                { id: 401, nom: "MacBook Pro 16\" M3", categorie: "Informatique & IT", ref: "GMC-IT-001", quantite: 3, valeurUnitaire: 2400, etat: "Neuf", lieu: "Direction" },
+                { id: 402, nom: "Système Sonorisation JBL", categorie: "Sonorisation & Événementiel", ref: "GMC-EVT-014", quantite: 2, valeurUnitaire: 3500, etat: "Bon état", lieu: "Dépôt" }
+            ]
+        };
+
+        let appState = {
+            meta: {},
+            associes: [],
+            projets: [],
+            factures: [],
+            travailleurs: [],
+            depenses: [],
+            inventaire: [],
+            selectedPole: "Tous",
+            activeTab: "dashboard",
+            editMode: false,
+            role: "admin"
+        };
+
+        let revenueChartInstance = null;
+        let activeProjectIdForFiles = null;
+
+        window.addEventListener("DOMContentLoaded", () => {
+            loadState();
+            displayCurrentDate();
+            renderPoleFilters();
+            renderAll();
+            setupInlineEditing();
+            openModal('modalLogin');
+        });
+
+        function normalizeFacture(f) {
+            const total = Number(f.montant) || 0;
+            let paye = 0;
+            if (f.montantPaye !== undefined && f.montantPaye !== null) {
+                paye = Number(f.montantPaye) || 0;
+            } else {
+                paye = f.statut === "Payée" ? total : 0;
+            }
+            if (paye > total) paye = total;
+            const reste = Math.max(0, total - paye);
+            return {
+                ...f,
+                montant: total,
+                montantPaye: paye,
+                reste: reste,
+                statut: reste === 0 ? "En ordre" : "Dette à payer"
+            };
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState.meta = parsed.meta || DEFAULT_DATA.meta;
+                    appState.associes = parsed.associes || DEFAULT_DATA.associes;
+                    appState.projets = (parsed.projets || DEFAULT_DATA.projets).map(p => ({ ...p, documents: p.documents || [] }));
+                    appState.factures = (parsed.factures || DEFAULT_DATA.factures).map(normalizeFacture);
+                    appState.travailleurs = parsed.travailleurs || DEFAULT_DATA.travailleurs;
+                    appState.depenses = parsed.depenses || DEFAULT_DATA.depenses;
+                    appState.inventaire = parsed.inventaire || DEFAULT_DATA.inventaire;
+                } catch (e) {
+                    resetToDefault();
+                }
+            } else {
+                resetToDefault();
+            }
+        }
+
+        function resetToDefault() {
+            appState.meta = JSON.parse(JSON.stringify(DEFAULT_DATA.meta));
+            appState.associes = JSON.parse(JSON.stringify(DEFAULT_DATA.associes));
+            appState.projets = JSON.parse(JSON.stringify(DEFAULT_DATA.projets));
+            appState.factures = JSON.parse(JSON.stringify(DEFAULT_DATA.factures)).map(normalizeFacture);
+            appState.travailleurs = JSON.parse(JSON.stringify(DEFAULT_DATA.travailleurs));
+            appState.depenses = JSON.parse(JSON.stringify(DEFAULT_DATA.depenses));
+            appState.inventaire = JSON.parse(JSON.stringify(DEFAULT_DATA.inventaire));
+            saveState();
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    meta: appState.meta,
+                    associes: appState.associes,
+                    projets: appState.projets,
+                    factures: appState.factures,
+                    travailleurs: appState.travailleurs,
+                    depenses: appState.depenses,
+                    inventaire: appState.inventaire
+                }));
+            } catch (err) {
+                showToast("Stockage plein.", "info");
+            }
+        }
+
+        function resetDemoData() {
+            resetToDefault();
+            appState.selectedPole = "Tous";
+            renderPoleFilters();
+            renderAll();
+            showToast("Données par défaut restaurées.", "info");
+        }
+
+        let loginSelectedRole = 'admin';
+
+        function selectLoginRole(role) {
+            loginSelectedRole = role;
+            const tabAdmin = document.getElementById("loginTabAdmin");
+            const tabTravailleur = document.getElementById("loginTabTravailleur");
+            const adminBox = document.getElementById("adminLoginBox");
+            const workerBox = document.getElementById("workerLoginBox");
+
+            if (role === 'admin') {
+                tabAdmin.className = "p-3.5 rounded-2xl border-2 border-blue-600 bg-blue-50/50 text-blue-900 font-semibold text-xs flex flex-col items-center gap-2 transition-all";
+                tabTravailleur.className = "p-3.5 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-semibold text-xs flex flex-col items-center gap-2 transition-all hover:border-slate-300";
+                adminBox.classList.remove("hidden");
+                workerBox.classList.add("hidden");
+            } else {
+                tabTravailleur.className = "p-3.5 rounded-2xl border-2 border-indigo-600 bg-indigo-50/50 text-indigo-900 font-semibold text-xs flex flex-col items-center gap-2 transition-all";
+                tabAdmin.className = "p-3.5 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-semibold text-xs flex flex-col items-center gap-2 transition-all hover:border-slate-300";
+                workerBox.classList.remove("hidden");
+                adminBox.classList.add("hidden");
+
+                const select = document.getElementById("workerSelectProfile");
+                select.innerHTML = appState.travailleurs.map(t => `<option value="${t.id}">${t.nom} — ${t.poste}</option>`).join("");
+            }
+        }
+
+        function submitAdminLogin() {
+            const pwd = document.getElementById("adminPasswordInput").value;
+            const correctPwd = appState.meta.adminPassword || "admin123";
+
+            if (pwd === correctPwd) {
+                appState.role = "admin";
+                closeModal('modalLogin');
+                document.getElementById("adminPasswordInput").value = "";
+                applyRoleState();
+                showToast("Connexion Administrateur réussie.", "success");
+            } else {
+                showToast("Mot de passe administrateur incorrect.", "info");
+            }
+        }
+
+        function submitWorkerLogin() {
+            appState.role = "travailleur";
+            closeModal('modalLogin');
+            if (["associes", "facturation", "dettes", "travailleurs", "depenses", "inventaire"].includes(appState.activeTab)) {
+                switchTab("dashboard");
+            }
+            if (appState.editMode) toggleEditMode();
+            applyRoleState();
+            showToast("Connecté en tant que Travailleur (Accès limité).", "success");
+        }
+
+        function applyRoleState() {
+            const isAdmin = appState.role === "admin";
+            const indicator = document.getElementById("roleIndicatorBadge");
+            const roleLabel = document.getElementById("sidebarRoleLabel");
+
+            if (isAdmin) {
+                indicator.textContent = "Mode Admin";
+                indicator.className = "px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200";
+                roleLabel.textContent = "Mode: Admin";
+            } else {
+                indicator.textContent = "Mode Travailleur";
+                indicator.className = "px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200";
+                roleLabel.textContent = "Mode: Travailleur";
+            }
+
+            document.querySelectorAll(".admin-only").forEach(el => {
+                if (isAdmin) el.classList.remove("hidden");
+                else el.classList.add("hidden");
+            });
+
+            document.querySelectorAll(".worker-only").forEach(el => {
+                if (!isAdmin) el.classList.remove("hidden");
+                else el.classList.add("hidden");
+            });
+
+            renderAll();
+        }
+
+        function formatUSD(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 0
+            }).format(Number(amount) || 0);
+        }
+
+        function displayCurrentDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date().toLocaleDateString('fr-FR', options);
+            document.getElementById("currentDate").textContent = today.charAt(0).toUpperCase() + today.slice(1);
+        }
+
+        function toggleEditMode() {
+            if (appState.role !== "admin") return;
+            appState.editMode = !appState.editMode;
+            const body = document.body;
+            const banner = document.getElementById("editModeBanner");
+            const btn = document.getElementById("btnToggleEdit");
+            const label = document.getElementById("btnToggleEditLabel");
+
+            if (appState.editMode) {
+                body.classList.add("edit-mode-active");
+                banner.classList.remove("hidden");
+                btn.classList.remove("bg-amber-50", "text-amber-800", "border-amber-300");
+                btn.classList.add("bg-amber-500", "text-navy-950", "border-amber-600");
+                label.textContent = "Mode Édition Directe : ON";
+                showToast("Mode Édition activé.", "info");
+            } else {
+                body.classList.remove("edit-mode-active");
+                banner.classList.add("hidden");
+                btn.classList.add("bg-amber-50", "text-amber-800", "border-amber-300");
+                btn.classList.remove("bg-amber-500", "text-navy-950", "border-amber-600");
+                label.textContent = "Mode Édition Directe : OFF";
+                showToast("Modifications enregistrées.", "success");
+            }
+            applyEditableAttributes();
+        }
+
+        function applyEditableAttributes() {
+            const allowEdit = appState.editMode && appState.role === "admin";
+            document.querySelectorAll("[data-editable]").forEach(el => {
+                el.contentEditable = allowEdit ? "true" : "false";
+                if (allowEdit) el.setAttribute("spellcheck", "false");
+            });
+        }
+
+        function setupInlineEditing() {
+            document.addEventListener("keydown", (e) => {
+                if (e.target.hasAttribute("data-editable") && e.key === "Enter") {
+                    e.preventDefault();
+                    e.target.blur();
+                }
+            });
+
+            document.addEventListener("focusout", (e) => {
+                const el = e.target;
+                if (!el.hasAttribute("data-editable") || !appState.editMode || appState.role !== "admin") return;
+
+                const type = el.dataset.type;
+                const field = el.dataset.field;
+                const id = Number(el.dataset.id) || el.dataset.id;
+                let rawValue = el.textContent.trim();
+
+                if (type === "meta") {
+                    appState.meta[field] = rawValue || appState.meta[field];
+                } 
+                else if (type === "projet") {
+                    const proj = appState.projets.find(p => p.id === id);
+                    if (proj) {
+                        if (field === "budget") {
+                            const num = parseFloat(rawValue.replace(/[^0-9.]/g, ""));
+                            proj.budget = isNaN(num) ? 0 : num;
+                        } else {
+                            proj[field] = rawValue || proj[field];
+                        }
+                    }
+                }
+                saveState();
+                renderAll();
+                showToast("Modifié.", "success");
+            });
+        }
+
+        function switchTab(tabName) {
+            if (appState.role === "travailleur" && ["associes", "facturation", "dettes", "travailleurs", "depenses", "inventaire"].includes(tabName)) {
+                showToast("Accès strictement restreint aux administrateurs.", "info");
+                return;
+            }
+
+            appState.activeTab = tabName;
+            document.querySelectorAll(".view-section").forEach(el => el.classList.add("hidden"));
+            document.getElementById(`view-${tabName}`).classList.remove("hidden");
+
+            document.querySelectorAll(".nav-btn").forEach(btn => {
+                btn.classList.remove("bg-blue-600", "bg-indigo-600", "text-white", "shadow-sm");
+                btn.classList.add("text-slate-300", "hover:bg-navy-800", "hover:text-white");
+            });
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.remove("text-slate-300", "hover:bg-navy-800", "hover:text-white");
+                activeBtn.classList.add(appState.role === 'admin' ? "bg-blue-600" : "bg-indigo-600", "text-white", "shadow-sm");
+            }
+
+            const titles = {
+                dashboard: "Vue d'ensemble",
+                projets: "Projets & Contrats",
+                associes: "Associés & Équipe",
+                facturation: "Facturation & Finances",
+                dettes: "Dettes Clients & Soldes à Payer",
+                travailleurs: "Travailleurs & RH",
+                "mes-documents": "Mes Documents Personnels",
+                depenses: "Dépenses",
+                inventaire: "Inventaire des Biens"
+            };
+            document.getElementById("pageTitle").textContent = titles[tabName] || "GM Consulting";
+
+            if (window.innerWidth < 1024) {
+                const sidebar = document.getElementById("sidebar");
+                if (!sidebar.classList.contains("-translate-x-full")) toggleSidebar();
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("-translate-x-full");
+            document.getElementById("sidebarOverlay").classList.toggle("hidden");
+        }
+
+        function renderPoleFilters() {
+            const container = document.getElementById("poleFilters");
+            container.innerHTML = POLES.map(pole => {
+                const isSelected = appState.selectedPole === pole;
+                const cls = isSelected 
+                    ? "bg-navy-900 text-white border-navy-900 shadow-sm" 
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200";
+                return `<button onclick="selectPole('${pole.replace(/'/g, "\'")}')" class="px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${cls}">${pole}</button>`;
+            }).join("");
+        }
+
+        function selectPole(pole) {
+            appState.selectedPole = pole;
+            renderPoleFilters();
+            renderAll();
+        }
+
+        function renderAll() {
+            renderMeta();
+            updateKPIsAndBadges();
+            renderProjetsTables();
+            renderAssocies();
+            renderFactures();
+            renderDettes();
+            renderTravailleurs();
+            renderWorkerDocuments();
+            renderDepenses();
+            renderInventaire();
+            renderChart();
+            applyEditableAttributes();
+            lucide.createIcons();
+        }
+
+        function renderMeta() {
+            document.querySelector('[data-field="companyInitials"]').textContent = appState.meta.companyInitials;
+            document.querySelector('[data-field="companyName"]').textContent = appState.meta.companyName;
+            document.querySelector('[data-field="companySubtitle"]').textContent = appState.meta.companySubtitle;
+        }
+
+        function updateKPIsAndBadges() {
+            const pole = appState.selectedPole;
+            const filteredProjets = pole === "Tous" ? appState.projets : appState.projets.filter(p => p.pole === pole);
+            const filteredFactures = (pole === "Tous" ? appState.factures : appState.factures.filter(f => f.pole === pole)).map(normalizeFacture);
+
+            const totalCA = filteredProjets.reduce((sum, p) => sum + Number(p.budget), 0);
+            const projetsActifs = filteredProjets.filter(p => p.statut === "En cours").length;
+            
+            const facturesAvecDette = filteredFactures.filter(f => f.reste > 0);
+            const montantDetteTotale = facturesAvecDette.reduce((sum, f) => sum + f.reste, 0);
+            const montantEncaisse = filteredFactures.reduce((sum, f) => sum + f.montantPaye, 0);
+
+            const totalDepenses = appState.depenses.reduce((sum, d) => sum + Number(d.montant), 0);
+            const beneficeNet = montantEncaisse - totalDepenses;
+
+            const totalSalaires = appState.travailleurs.reduce((sum, t) => sum + Number(t.salaire), 0);
+            const valeurInventaire = appState.inventaire.reduce((sum, i) => sum + (Number(i.quantite) * Number(i.valeurUnitaire)), 0);
+
+            document.getElementById("kpi-ca").textContent = formatUSD(totalCA);
+            document.getElementById("kpi-factures").textContent = formatUSD(montantDetteTotale);
+            document.getElementById("kpi-factures-count").textContent = `${facturesAvecDette.length} client(s) avec dette à payer`;
+            document.getElementById("kpi-projets").textContent = projetsActifs;
+            document.getElementById("kpi-projets-sub").textContent = `${filteredProjets.length} contrat(s)`;
+            
+            const beneficeEl = document.getElementById("kpi-benefice");
+            if (beneficeEl) {
+                beneficeEl.textContent = formatUSD(beneficeNet);
+                beneficeEl.className = beneficeNet >= 0 ? "text-2xl font-bold text-emerald-600 mt-1.5" : "text-2xl font-bold text-rose-600 mt-1.5";
+            }
+            const financeSub = document.getElementById("kpi-finance-sub");
+            if (financeSub) financeSub.textContent = `Encaissé: ${formatUSD(montantEncaisse)} • Dépenses: ${formatUSD(totalDepenses)}`;
+
+            const totalWorkerDocs = appState.travailleurs.reduce((sum, t) => sum + (t.documents ? t.documents.length : 0), 0);
+            const workerDocsEl = document.getElementById("kpi-worker-docs");
+            if (workerDocsEl) workerDocsEl.textContent = `${totalWorkerDocs} PDF`;
+
+            const salairesTotalEl = document.getElementById("kpi-salaires-total");
+            if (salairesTotalEl) salairesTotalEl.textContent = formatUSD(totalSalaires);
+            const travCountEl = document.getElementById("kpi-travailleurs-count");
+            if (travCountEl) travCountEl.textContent = `${appState.travailleurs.length} employés`;
+            const depTotalEl = document.getElementById("kpi-depenses-total");
+            if (depTotalEl) depTotalEl.textContent = formatUSD(totalDepenses);
+            const depCountEl = document.getElementById("kpi-depenses-count");
+            if (depCountEl) depCountEl.textContent = `${appState.depenses.length} écritures`;
+            const invTotalEl = document.getElementById("kpi-inventaire-total");
+            if (invTotalEl) invTotalEl.textContent = formatUSD(valeurInventaire);
+            const invCountEl = document.getElementById("kpi-inventaire-count");
+            if (invCountEl) invCountEl.textContent = `${appState.inventaire.reduce((s, i) => s + Number(i.quantite), 0)} unités`;
+
+            const allDettesCount = appState.factures.map(normalizeFacture).filter(f => f.reste > 0).length;
+            document.getElementById("badge-projets").textContent = appState.projets.length;
+            document.getElementById("badge-associes").textContent = appState.associes.length;
+            document.getElementById("badge-factures").textContent = allDettesCount;
+            document.getElementById("badge-dettes").textContent = allDettesCount;
+            const headerDettesCount = document.getElementById("header-dettes-count");
+            if (headerDettesCount) headerDettesCount.textContent = allDettesCount;
+            document.getElementById("badge-travailleurs").textContent = appState.travailleurs.length;
+            document.getElementById("badge-depenses").textContent = appState.depenses.length;
+            document.getElementById("badge-inventaire").textContent = appState.inventaire.length;
+        }
+
+        function getPoleBadge(pole) {
+            const style = POLE_COLORS[pole] || { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-200" };
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium border ${style.bg} ${style.text} ${style.border}">${pole}</span>`;
+        }
+
+        function getStatutBadge(statut) {
+            if (statut === "En cours") return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700"><span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>En cours</span>`;
+            if (statut === "Terminé") return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>Terminé</span>`;
+            return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>En attente</span>`;
+        }
+
+        function renderProjetsTables() {
+            const search = (document.getElementById("searchProjetInput")?.value || "").toLowerCase();
+            const statut = document.getElementById("filterStatutSelect")?.value || "Tous";
+            const pole = appState.selectedPole;
+            const isAdmin = appState.role === "admin";
+
+            const filtered = appState.projets.filter(p => {
+                const matchPole = pole === "Tous" || p.pole === pole;
+                const matchStatut = statut === "Tous" || p.statut === statut;
+                const matchSearch = p.titre.toLowerCase().includes(search) || p.client.toLowerCase().includes(search);
+                return matchPole && matchStatut && matchSearch;
+            });
+
+            const rowsHtml = filtered.length === 0
+                ? `<tr><td colspan="8" class="py-10 text-center text-slate-400 text-sm">Aucun projet trouvé.</td></tr>`
+                : filtered.map(p => {
+                    const docsCount = p.documents ? p.documents.length : 0;
+                    return `
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-3.5 px-6 font-semibold text-slate-900">
+                                <span data-editable data-type="projet" data-id="${p.id}" data-field="titre">${p.titre}</span>
+                            </td>
+                            <td class="py-3.5 px-6 text-slate-600">${p.client}</td>
+                            <td class="py-3.5 px-6">${getPoleBadge(p.pole)}</td>
+                            <td class="py-3.5 px-6 font-bold text-slate-900 admin-only">
+                                <span data-editable data-type="projet" data-id="${p.id}" data-field="budget">${formatUSD(p.budget)}</span>
+                            </td>
+                            <td class="py-3.5 px-6 text-slate-600 text-xs">${p.associe}</td>
+                            <td class="py-3.5 px-6">
+                                ${isAdmin ? `<button onclick="cycleProjetStatut(${p.id})">${getStatutBadge(p.statut)}</button>` : getStatutBadge(p.statut)}
+                            </td>
+                            <td class="py-3.5 px-6">
+                                <button onclick="openProjetFiles(${p.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors">
+                                    <i data-lucide="folder" class="w-3.5 h-3.5"></i>
+                                    <span>${docsCount} fichier(s)</span>
+                                </button>
+                            </td>
+                            <td class="py-3.5 px-6 text-right admin-only">
+                                <div class="flex items-center justify-end gap-1">
+                                    <button onclick="openEditProjet(${p.id})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Modifier"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                    <button onclick="deleteProjet(${p.id})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg" title="Supprimer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+
+            document.getElementById("projetsTableBody").innerHTML = rowsHtml;
+            document.getElementById("projetsFullTableBody").innerHTML = rowsHtml;
+        }
+
+        function cycleProjetStatut(id) {
+            if (appState.role !== "admin") return;
+            const order = ["En attente", "En cours", "Terminé"];
+            const proj = appState.projets.find(p => p.id === id);
+            if (proj) {
+                proj.statut = order[(order.indexOf(proj.statut) + 1) % order.length];
+                saveState();
+                renderAll();
+            }
+        }
+
+        function deleteProjet(id) {
+            if (appState.role !== "admin") return;
+            appState.projets = appState.projets.filter(p => p.id !== id);
+            saveState();
+            renderAll();
+            showToast("Projet supprimé.", "info");
+        }
+
+        function openEditProjet(id) {
+            if (appState.role !== "admin") return;
+            const p = appState.projets.find(item => item.id === id);
+            if (!p) return;
+            document.getElementById("editProjId").value = p.id;
+            document.getElementById("editProjTitre").value = p.titre;
+            document.getElementById("editProjClient").value = p.client;
+            document.getElementById("editProjPole").value = p.pole;
+            document.getElementById("editProjBudget").value = p.budget;
+            document.getElementById("editProjStatut").value = p.statut;
+            document.getElementById("editProjFilesInput").value = "";
+            openModal("modalEditProjet");
+        }
+
+        async function handleUpdateProjet(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            const id = Number(document.getElementById("editProjId").value);
+            const proj = appState.projets.find(p => p.id === id);
+            if (!proj) return;
+
+            proj.titre = document.getElementById("editProjTitre").value.trim();
+            proj.client = document.getElementById("editProjClient").value.trim();
+            proj.pole = document.getElementById("editProjPole").value;
+            proj.budget = Number(document.getElementById("editProjBudget").value) || 0;
+            proj.statut = document.getElementById("editProjStatut").value;
+
+            const newFiles = document.getElementById("editProjFilesInput").files;
+            if (newFiles && newFiles.length > 0) {
+                const parsedFiles = await readFilesAsObjects(newFiles);
+                proj.documents = (proj.documents || []).concat(parsedFiles);
+            }
+
+            saveState();
+            closeModal("modalEditProjet");
+            renderAll();
+            showToast("Projet mis à jour avec succès.", "success");
+        }
+
+        function openProjetFiles(id) {
+            const p = appState.projets.find(item => item.id === id);
+            if (!p) return;
+            activeProjectIdForFiles = id;
+            document.getElementById("modalProjFilesTitle").textContent = `Dossier — ${p.titre}`;
+            renderProjetFilesModalList();
+            openModal("modalProjetFiles");
+        }
+
+        function renderProjetFilesModalList() {
+            const p = appState.projets.find(item => item.id === activeProjectIdForFiles);
+            if (!p) return;
+            const container = document.getElementById("modalProjFilesList");
+            const docs = p.documents || [];
+
+            if (docs.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic py-3 text-center">Aucun fichier joint à ce projet pour le moment.</p>`;
+                return;
+            }
+
+            container.innerHTML = docs.map((doc, idx) => `
+                <div class="flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs">
+                    <div class="flex items-center gap-2 truncate pr-2">
+                        <i data-lucide="file-text" class="w-4 h-4 text-blue-600 shrink-0"></i>
+                        <span class="font-medium text-slate-800 truncate">${doc.name}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="viewProjectFile(${activeProjectIdForFiles}, ${idx})" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Consulter</button>
+                        <a href="${doc.dataUrl}" download="${doc.name}" class="p-1 text-slate-500 hover:text-slate-800" title="Télécharger"><i data-lucide="download" class="w-3.5 h-3.5"></i></a>
+                        ${appState.role === 'admin' ? `<button onclick="removeProjectFile(${activeProjectIdForFiles}, ${idx})" class="p-1 text-rose-500 hover:text-rose-700" title="Supprimer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+                    </div>
+                </div>
+            `).join("");
+            lucide.createIcons();
+        }
+
+        async function uploadMoreFilesToProject() {
+            if (appState.role !== "admin") return;
+            const fileInput = document.getElementById("modalAddFileInput");
+            if (!fileInput.files || fileInput.files.length === 0) return;
+            const p = appState.projets.find(item => item.id === activeProjectIdForFiles);
+            if (!p) return;
+
+            const parsed = await readFilesAsObjects(fileInput.files);
+            p.documents = (p.documents || []).concat(parsed);
+            saveState();
+            fileInput.value = "";
+            renderProjetFilesModalList();
+            renderAll();
+            showToast("Fichiers ajoutés au projet.", "success");
+        }
+
+        function removeProjectFile(projId, fileIndex) {
+            if (appState.role !== "admin") return;
+            const p = appState.projets.find(item => item.id === projId);
+            if (p && p.documents) {
+                p.documents.splice(fileIndex, 1);
+                saveState();
+                renderProjetFilesModalList();
+                renderAll();
+                showToast("Fichier supprimé.", "info");
+            }
+        }
+
+        function viewProjectFile(projId, fileIndex) {
+            const p = appState.projets.find(item => item.id === projId);
+            if (!p || !p.documents || !p.documents[fileIndex]) return;
+            const doc = p.documents[fileIndex];
+            document.getElementById("pdfViewerTitle").textContent = `${p.titre} — ${doc.name}`;
+            document.getElementById("pdfViewerFrame").src = doc.dataUrl;
+            const dl = document.getElementById("pdfViewerDownload");
+            dl.href = doc.dataUrl;
+            dl.download = doc.name;
+            openModal("modalPdfViewer");
+        }
+
+        function renderAssocies() {
+            if (appState.role !== "admin") return;
+            const totalEncaisse = appState.factures.map(normalizeFacture).reduce((sum, f) => sum + f.montantPaye, 0);
+            const totalDepenses = appState.depenses.reduce((sum, d) => sum + Number(d.montant), 0);
+            const basePartageable = Math.max(0, totalEncaisse - totalDepenses);
+
+            const dashList = document.getElementById("dashboard-associes-list");
+            if (dashList) {
+                dashList.innerHTML = appState.associes.map(a => {
+                    const gainEstime = (basePartageable * (Number(a.part) || 0)) / 100;
+                    return `
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <div class="min-w-0 pr-2">
+                                <p class="text-xs font-bold text-slate-900 truncate">${a.nom}</p>
+                                <p class="text-[11px] text-slate-500 truncate">${a.role}</p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="text-xs font-bold text-blue-600 block">${a.part}%</span>
+                                <span class="text-[11px] font-semibold text-emerald-600">${formatUSD(gainEstime)}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            }
+
+            const totalShares = appState.associes.reduce((sum, a) => sum + Number(a.part || 0), 0);
+            const shareBadge = document.getElementById("total-shares-badge");
+            if (shareBadge) shareBadge.textContent = `${totalShares}%`;
+
+            const grid = document.getElementById("associesGrid");
+            if (grid) {
+                grid.innerHTML = appState.associes.map(a => {
+                    const initiales = a.nom.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "AS";
+                    const gainEstime = (basePartageable * (Number(a.part) || 0)) / 100;
+                    return `
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-start justify-between gap-3 mb-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-navy-900 text-amber-400 font-bold flex items-center justify-center text-base shadow">${initiales}</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">${a.part}%</span>
+                                        <button onclick="deleteAssocie(${a.id})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Supprimer cet associé"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-slate-900 text-base">${a.nom}</h3>
+                                <p class="text-xs text-slate-500 mt-1 mb-3">${a.role}</p>
+                                ${getPoleBadge(a.pole)}
+                            </div>
+                            <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                                <span class="text-slate-500">Quote-part :</span>
+                                <span class="font-bold text-emerald-600 text-sm">${formatUSD(gainEstime)}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            }
+        }
+
+        function deleteAssocie(id) {
+            if (appState.role !== "admin") return;
+            if (appState.associes.length <= 1) {
+                showToast("Impossible de supprimer le dernier associé.", "info");
+                return;
+            }
+            appState.associes = appState.associes.filter(a => a.id !== id);
+            saveState();
+            renderAll();
+            showToast("Associé supprimé.", "info");
+        }
+
+        function renderFactures() {
+            if (appState.role !== "admin") return;
+            const pole = appState.selectedPole;
+            const filtered = (pole === "Tous" ? appState.factures : appState.factures.filter(f => f.pole === pole)).map(normalizeFacture);
+
+            const tbody = document.getElementById("facturesTableBody");
+            if (!tbody) return;
+            tbody.innerHTML = filtered.length === 0
+                ? `<tr><td colspan="9" class="py-8 text-center text-slate-400 text-sm">Aucune facture.</td></tr>`
+                : filtered.map(f => {
+                    const hasDebt = f.reste > 0;
+                    const situationBadge = hasDebt
+                        ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>Dette à payer</span>`
+                        : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>En ordre</span>`;
+
+                    return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3.5 px-6 font-mono text-xs font-bold text-slate-700">${f.id}</td>
+                        <td class="py-3.5 px-6 font-medium text-slate-900">${f.client}</td>
+                        <td class="py-3.5 px-6">${getPoleBadge(f.pole)}</td>
+                        <td class="py-3.5 px-6 text-slate-500 text-xs">${new Date(f.date).toLocaleDateString('fr-FR')}</td>
+                        <td class="py-3.5 px-6 font-bold text-slate-900">${formatUSD(f.montant)}</td>
+                        <td class="py-3.5 px-6 font-semibold text-emerald-600">${formatUSD(f.montantPaye)}</td>
+                        <td class="py-3.5 px-6 font-bold ${hasDebt ? 'text-rose-600' : 'text-slate-400'}">${formatUSD(f.reste)}</td>
+                        <td class="py-3.5 px-6">${situationBadge}</td>
+                        <td class="py-3.5 px-6 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="openFactureDetail('${f.id}')" class="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg" title="Voir la facture détaillée">Facture</button>
+                            ${hasDebt ? `<button onclick="openReglerDette('${f.id}')" class="px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg">Payer dette</button>` : ''}
+                            <button onclick="openEditFacture('${f.id}')" class="px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg">Modifier</button>
+                            <button onclick="deleteFacture('${f.id}')" class="px-2 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg">Supprimer</button>
+                        </td>
+                    </tr>
+                `}).join("");
+        }
+
+        function renderDettes() {
+            if (appState.role !== "admin") return;
+            const pole = appState.selectedPole;
+            const allFactures = (pole === "Tous" ? appState.factures : appState.factures.filter(f => f.pole === pole)).map(normalizeFacture);
+            const dettesList = allFactures.filter(f => f.reste > 0);
+            const totalDette = dettesList.reduce((sum, f) => sum + f.reste, 0);
+
+            const badgeTotal = document.getElementById("dettes-total-badge");
+            if (badgeTotal) badgeTotal.textContent = `${formatUSD(totalDette)} dû (${dettesList.length} client(s))`;
+
+            const tbody = document.getElementById("dettesTableBody");
+            if (!tbody) return;
+
+            tbody.innerHTML = dettesList.length === 0
+                ? `<tr><td colspan="8" class="py-12 text-center text-emerald-600 font-semibold text-sm">Tous les clients sont en ordre ! Aucune dette impayée.</td></tr>`
+                : dettesList.map(f => `
+                    <tr class="hover:bg-rose-50/40 transition-colors">
+                        <td class="py-3.5 px-6 font-bold text-slate-900">${f.client}</td>
+                        <td class="py-3.5 px-6 font-mono text-xs text-slate-600">${f.id}</td>
+                        <td class="py-3.5 px-6">${getPoleBadge(f.pole)}</td>
+                        <td class="py-3.5 px-6 font-bold text-slate-900">${formatUSD(f.montant)}</td>
+                        <td class="py-3.5 px-6 font-semibold text-emerald-600">${formatUSD(f.montantPaye)}</td>
+                        <td class="py-3.5 px-6 font-bold text-rose-600">${formatUSD(f.reste)}</td>
+                        <td class="py-3.5 px-6">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>Dette à payer
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-6 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="openFactureDetail('${f.id}')" class="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg">Voir Facture</button>
+                            <button onclick="openReglerDette('${f.id}')" class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm">Encaisser / Solder</button>
+                        </td>
+                    </tr>
+                `).join("");
+        }
+
+        function openReglerDette(id) {
+            if (appState.role !== "admin") return;
+            const raw = appState.factures.find(item => item.id === id);
+            if (!raw) return;
+            const f = normalizeFacture(raw);
+
+            document.getElementById("reglerFacId").value = f.id;
+            document.getElementById("reglerClientNom").textContent = `${f.client} (${f.id})`;
+            document.getElementById("reglerTotalContrat").textContent = formatUSD(f.montant);
+            document.getElementById("reglerDejaPaye").textContent = formatUSD(f.montantPaye);
+            document.getElementById("reglerResteDu").textContent = formatUSD(f.reste);
+            document.getElementById("reglerNouveauVersement").value = f.reste;
+            document.getElementById("reglerNouveauVersement").max = f.reste;
+
+            openModal("modalReglerDette");
+        }
+
+        function solderToutLeReste() {
+            const id = document.getElementById("reglerFacId").value;
+            const raw = appState.factures.find(item => item.id === id);
+            if (!raw) return;
+            const f = normalizeFacture(raw);
+            document.getElementById("reglerNouveauVersement").value = f.reste;
+        }
+
+        function handleReglerDette(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            const id = document.getElementById("reglerFacId").value;
+            const versement = Number(document.getElementById("reglerNouveauVersement").value) || 0;
+            const fac = appState.factures.find(item => item.id === id);
+            if (!fac) return;
+
+            const normalized = normalizeFacture(fac);
+            fac.montantPaye = Math.min(normalized.montant, normalized.montantPaye + versement);
+            const updated = normalizeFacture(fac);
+            fac.statut = updated.statut;
+
+            saveState();
+            closeModal("modalReglerDette");
+            renderAll();
+
+            if (updated.reste === 0) {
+                showToast(`Facture ${fac.id} soldée ! Le client ${fac.client} est maintenant en ordre.`, "success");
+            } else {
+                showToast(`Paiement de ${formatUSD(versement)} enregistré. Reste à payer : ${formatUSD(updated.reste)}.`, "info");
+            }
+        }
+
+        function openFactureDetail(id) {
+            const raw = appState.factures.find(item => item.id === id);
+            if (!raw) return;
+            const f = normalizeFacture(raw);
+            const isEnOrdre = f.reste === 0;
+
+            const container = document.getElementById("factureDetailContent");
+            container.innerHTML = `
+                <div class="flex items-start justify-between border-b border-slate-200 pb-5">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-600">${appState.meta.companyName || 'GM Consulting'}</span>
+                        <h2 class="text-xl font-bold text-slate-900 mt-1">FACTURE ${f.id}</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Date d'émission : ${new Date(f.date).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <div class="text-right">
+                        ${isEnOrdre
+                            ? `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">CLIENT EN ORDRE</span>`
+                            : `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">DETTE À PAYER</span>`
+                        }
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <span class="text-slate-400 uppercase font-semibold block">Facturé à :</span>
+                        <span class="text-sm font-bold text-slate-900 mt-0.5 block">${f.client}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-400 uppercase font-semibold block">Département / Pôle :</span>
+                        <span class="text-sm font-semibold text-slate-800 mt-0.5 block">${f.pole}</span>
+                    </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                            <tr>
+                                <th class="py-3 px-4">Désignation</th>
+                                <th class="py-3 px-4 text-right">Montant ($ USD)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="py-3.5 px-4 font-medium text-slate-800">Prestation de service — ${f.pole}</td>
+                                <td class="py-3.5 px-4 text-right font-bold text-slate-900">${formatUSD(f.montant)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-2.5 text-sm">
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>Montant Total du Contrat :</span>
+                        <span class="font-bold text-slate-900">${formatUSD(f.montant)}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-emerald-700">
+                        <span>Montant Payé :</span>
+                        <span class="font-bold">${formatUSD(f.montantPaye)}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2.5 border-t border-slate-200 text-base">
+                        <span class="font-bold text-slate-900">Combien reste à payer (Solde dû) :</span>
+                        <span class="font-extrabold ${isEnOrdre ? 'text-emerald-600' : 'text-rose-600'}">${formatUSD(f.reste)}</span>
+                    </div>
+                </div>
+            `;
+            openModal("modalFactureDetail");
+        }
+
+        function updateFactureRestePreview() {
+            const total = Number(document.getElementById("facMontant").value) || 0;
+            const paye = Number(document.getElementById("facMontantPaye").value) || 0;
+            const reste = Math.max(0, total - paye);
+
+            const resteEl = document.getElementById("facPreviewReste");
+            const statutEl = document.getElementById("facPreviewStatut");
+
+            resteEl.textContent = formatUSD(reste);
+            if (reste > 0) {
+                resteEl.className = "text-sm font-bold text-rose-600";
+                statutEl.textContent = "Dette à payer";
+                statutEl.className = "font-bold text-rose-600";
+            } else {
+                resteEl.className = "text-sm font-bold text-emerald-600";
+                statutEl.textContent = "En ordre (Soldée)";
+                statutEl.className = "font-bold text-emerald-700";
+            }
+        }
+
+        function openEditFacture(id) {
+            if (appState.role !== "admin") return;
+            const raw = appState.factures.find(item => item.id === id);
+            if (!raw) return;
+            const f = normalizeFacture(raw);
+            document.getElementById("modalFactureTitle").textContent = `Modifier Facture ${f.id}`;
+            document.getElementById("editFacId").value = f.id;
+            document.getElementById("facClient").value = f.client;
+            document.getElementById("facPole").value = f.pole;
+            document.getElementById("facMontant").value = f.montant;
+            document.getElementById("facMontantPaye").value = f.montantPaye;
+            updateFactureRestePreview();
+            openModal("modalFacture");
+        }
+
+        function deleteFacture(id) {
+            if (appState.role !== "admin") return;
+            appState.factures = appState.factures.filter(f => f.id !== id);
+            saveState();
+            renderAll();
+            showToast("Facture supprimée.", "info");
+        }
+
+        function renderTravailleurs() {
+            if (appState.role !== "admin") return;
+            const totalPayroll = appState.travailleurs.reduce((sum, t) => sum + Number(t.salaire || 0), 0);
+            const payrollEl = document.getElementById("rh-total-payroll");
+            if (payrollEl) payrollEl.textContent = formatUSD(totalPayroll);
+
+            const grid = document.getElementById("travailleursGrid");
+            if (!grid) return;
+
+            grid.innerHTML = appState.travailleurs.map(t => {
+                const initiales = t.nom.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "TR";
+                const docs = t.documents || [];
+                const docsHtml = docs.length === 0
+                    ? `<p class="text-[11px] text-slate-400 italic">Aucun PDF joint</p>`
+                    : docs.map((doc, idx) => `
+                        <div class="flex items-center justify-between bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg text-xs">
+                            <button onclick="openPdfViewer(${t.id}, ${idx})" class="flex items-center gap-1.5 text-indigo-700 hover:underline font-medium truncate text-left">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-rose-500 shrink-0"></i>
+                                <span class="truncate">${doc.name}</span>
+                            </button>
+                            <button onclick="removeWorkerPdf(${t.id}, ${idx})" class="p-1 text-slate-400 hover:text-rose-600"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                    `).join("");
+
+                return `
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-3 mb-4">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-700 border font-bold flex items-center justify-center text-sm shrink-0">${initiales}</div>
+                                    <div class="min-w-0">
+                                        <h3 class="font-bold text-slate-900 text-base truncate">${t.nom}</h3>
+                                        <p class="text-xs text-slate-500 truncate">${t.poste}</p>
+                                    </div>
+                                </div>
+                                <button onclick="deleteTravailleur(${t.id})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                            <div class="flex items-center justify-between py-2.5 px-3.5 rounded-xl bg-slate-50 border mb-3">
+                                <span class="text-xs text-slate-500">Salaire :</span>
+                                <span class="text-sm font-bold text-slate-900">${formatUSD(t.salaire)}</span>
+                            </div>
+                            <div class="pt-3 border-t space-y-2">
+                                <span class="text-[11px] font-semibold uppercase text-slate-500">Dossier PDF (${docs.length})</span>
+                                <div class="space-y-1.5 max-h-28 overflow-y-auto">${docsHtml}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderWorkerDocuments() {
+            if (appState.role !== "travailleur") return;
+            const container = document.getElementById("workerDocumentsContainer");
+            if (!container) return;
+
+            const allDocs = [];
+            appState.travailleurs.forEach(t => {
+                if (t.documents && t.documents.length > 0) {
+                    t.documents.forEach((d, idx) => {
+                        allDocs.push({ workerName: t.nom, workerPoste: t.poste, doc: d, workerId: t.id, docIndex: idx });
+                    });
+                }
+            });
+
+            if (allDocs.length === 0) {
+                container.innerHTML = `<div class="col-span-full bg-white p-10 rounded-2xl border text-center text-slate-400 text-sm">Aucun document PDF personnel disponible.</div>`;
+                return;
+            }
+
+            container.innerHTML = allDocs.map(item => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
+                                <i data-lucide="file-text" class="w-5 h-5 text-indigo-600"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">${item.workerName}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base truncate">${item.doc.name}</h3>
+                    </div>
+                    <div class="mt-6 pt-4 border-t flex items-center justify-end gap-2">
+                        <button onclick="openPdfViewer(${item.workerId}, ${item.docIndex})" class="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl flex items-center gap-1.5">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> Visualiser
+                        </button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function previewSelectedPdfs(event) {
+            const container = document.getElementById("selectedPdfsPreview");
+            const files = Array.from(event.target.files || []);
+            container.innerHTML = files.map(f => `<span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 text-[11px] font-medium">${f.name}</span>`).join("");
+        }
+
+        function readFilesAsObjects(fileList) {
+            const files = Array.from(fileList || []);
+            return Promise.all(files.map(file => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve({ name: file.name, dataUrl: e.target.result, dateAjout: new Date().toISOString().slice(0, 10) });
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(file);
+            }))).then(res => res.filter(Boolean));
+        }
+
+        async function handleCreateTravailleur(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            const fileInput = document.getElementById("travDocsPdf");
+            const pdfDocs = await readFilesAsObjects(fileInput.files);
+
+            appState.travailleurs.unshift({
+                id: Date.now(),
+                nom: document.getElementById("travNom").value.trim(),
+                poste: document.getElementById("travPoste").value.trim(),
+                pole: document.getElementById("travPole").value,
+                salaire: Number(document.getElementById("travSalaire").value) || 0,
+                dateEmbauche: document.getElementById("travDate").value || new Date().toISOString().slice(0, 10),
+                statut: "Actif",
+                documents: pdfDocs
+            });
+
+            saveState();
+            closeModal("modalTravailleur");
+            e.target.reset();
+            document.getElementById("selectedPdfsPreview").innerHTML = "";
+            renderAll();
+            showToast("Travailleur enregistré.", "success");
+        }
+
+        function removeWorkerPdf(workerId, docIndex) {
+            if (appState.role !== "admin") return;
+            const worker = appState.travailleurs.find(t => t.id === workerId);
+            if (worker && worker.documents) {
+                worker.documents.splice(docIndex, 1);
+                saveState();
+                renderAll();
+                showToast("PDF supprimé.", "info");
+            }
+        }
+
+        function openPdfViewer(workerId, docIndex) {
+            const worker = appState.travailleurs.find(t => t.id === workerId);
+            if (!worker || !worker.documents || !worker.documents[docIndex]) return;
+            const doc = worker.documents[docIndex];
+            document.getElementById("pdfViewerTitle").textContent = `${worker.nom} — ${doc.name}`;
+            document.getElementById("pdfViewerFrame").src = doc.dataUrl;
+            const dl = document.getElementById("pdfViewerDownload");
+            dl.href = doc.dataUrl;
+            dl.download = doc.name;
+            openModal("modalPdfViewer");
+        }
+
+        function deleteTravailleur(id) {
+            if (appState.role !== "admin") return;
+            appState.travailleurs = appState.travailleurs.filter(t => t.id !== id);
+            saveState();
+            renderAll();
+            showToast("Supprimé.", "info");
+        }
+
+        function renderDepenses() {
+            if (appState.role !== "admin") return;
+            const tbody = document.getElementById("depensesTableBody");
+            if (!tbody) return;
+            const catFilter = document.getElementById("filterDepenseCat")?.value || "Toutes";
+            const filtered = catFilter === "Toutes" ? appState.depenses : appState.depenses.filter(d => d.categorie === catFilter);
+
+            tbody.innerHTML = filtered.length === 0
+                ? `<tr><td colspan="7" class="py-8 text-center text-slate-400 text-sm">Aucune dépense.</td></tr>`
+                : filtered.map(d => `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3.5 px-6 text-xs text-slate-500">${new Date(d.date).toLocaleDateString('fr-FR')}</td>
+                        <td class="py-3.5 px-6 font-semibold text-slate-900">${d.libelle}</td>
+                        <td class="py-3.5 px-6"><span class="px-2.5 py-0.5 rounded-lg text-xs font-medium bg-slate-100">${d.categorie}</span></td>
+                        <td class="py-3.5 px-6 text-xs text-slate-600">${d.mode}</td>
+                        <td class="py-3.5 px-6 font-bold text-rose-600">-${formatUSD(d.montant)}</td>
+                        <td class="py-3.5 px-6"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">${d.statut}</span></td>
+                        <td class="py-3.5 px-6 text-right"><button onclick="deleteDepense(${d.id})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                    </tr>
+                `).join("");
+        }
+
+        function handleCreateDepense(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            appState.depenses.unshift({
+                id: Date.now(),
+                libelle: document.getElementById("depLibelle").value.trim(),
+                categorie: document.getElementById("depCategorie").value,
+                montant: Number(document.getElementById("depMontant").value) || 0,
+                date: document.getElementById("depDate").value || new Date().toISOString().slice(0, 10),
+                mode: document.getElementById("depMode").value,
+                statut: "Payée"
+            });
+            saveState();
+            closeModal("modalDepense");
+            e.target.reset();
+            renderAll();
+            showToast("Dépense enregistrée.", "success");
+        }
+
+        function deleteDepense(id) {
+            if (appState.role !== "admin") return;
+            appState.depenses = appState.depenses.filter(d => d.id !== id);
+            saveState();
+            renderAll();
+            showToast("Supprimé.", "info");
+        }
+
+        function renderInventaire() {
+            if (appState.role !== "admin") return;
+            const tbody = document.getElementById("inventaireTableBody");
+            if (!tbody) return;
+            const search = (document.getElementById("searchInventaireInput")?.value || "").toLowerCase();
+            const filtered = appState.inventaire.filter(i => i.nom.toLowerCase().includes(search) || (i.ref || "").toLowerCase().includes(search));
+
+            tbody.innerHTML = filtered.length === 0
+                ? `<tr><td colspan="9" class="py-8 text-center text-slate-400 text-sm">Aucun bien.</td></tr>`
+                : filtered.map(i => {
+                    const totalVal = Number(i.quantite) * Number(i.valeurUnitaire);
+                    return `
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-3.5 px-6 font-semibold text-slate-900">${i.nom}</td>
+                            <td class="py-3.5 px-6 text-xs text-slate-600">${i.categorie}</td>
+                            <td class="py-3.5 px-6 font-mono text-xs text-slate-500">${i.ref || '-'}</td>
+                            <td class="py-3.5 px-6 font-bold text-slate-800">${i.quantite}</td>
+                            <td class="py-3.5 px-6 text-slate-700">${formatUSD(i.valeurUnitaire)}</td>
+                            <td class="py-3.5 px-6 font-bold text-slate-900">${formatUSD(totalVal)}</td>
+                            <td class="py-3.5 px-6"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">${i.etat}</span></td>
+                            <td class="py-3.5 px-6 text-xs text-slate-600">${i.lieu || '-'}</td>
+                            <td class="py-3.5 px-6 text-right"><button onclick="deleteInventaire(${i.id})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                        </tr>
+                    `;
+                }).join("");
+        }
+
+        function handleCreateInventaire(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            appState.inventaire.unshift({
+                id: Date.now(),
+                nom: document.getElementById("invNom").value.trim(),
+                categorie: document.getElementById("invCategorie").value,
+                ref: document.getElementById("invRef").value.trim() || `GMC-${Math.floor(100 + Math.random() * 900)}`,
+                quantite: Number(document.getElementById("invQuantite").value) || 1,
+                valeurUnitaire: Number(document.getElementById("invValeur").value) || 0,
+                etat: document.getElementById("invEtat").value,
+                lieu: document.getElementById("invLieu").value.trim() || "Siège"
+            });
+            saveState();
+            closeModal("modalInventaire");
+            e.target.reset();
+            renderAll();
+            showToast("Bien ajouté.", "success");
+        }
+
+        function deleteInventaire(id) {
+            if (appState.role !== "admin") return;
+            appState.inventaire = appState.inventaire.filter(i => i.id !== id);
+            saveState();
+            renderAll();
+            showToast("Supprimé.", "info");
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById("revenueChart");
+            if (!ctx) return;
+
+            const labels = POLES.filter(p => p !== "Tous");
+            const dataValues = labels.map(pole => {
+                return appState.projets.filter(p => p.pole === pole).reduce((sum, p) => sum + Number(p.budget), 0);
+            });
+            const colors = labels.map(pole => POLE_COLORS[pole].hex);
+
+            if (revenueChartInstance) revenueChartInstance.destroy();
+
+            revenueChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Revenus ($ USD)",
+                        data: dataValues,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        maxBarThickness: 46
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            padding: 12,
+                            cornerRadius: 10,
+                            callbacks: { label: (context) => ' ' + formatUSD(context.raw) }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: 'Inter', size: 11 }, color: '#64748b', callback: (val) => '$' + (val >= 1000 ? (val / 1000) + 'k' : val) }
+                        },
+                        x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11, weight: '500' }, color: '#334155' } }
+                    }
+                }
+            });
+        }
+
+        function openModal(id) {
+            if (appState.role !== "admin" && id !== 'modalPdfViewer' && id !== 'modalLogin' && id !== 'modalProjetFiles') {
+                showToast("Action réservée aux administrateurs.", "info");
+                return;
+            }
+            if (id === 'modalProjet') {
+                const select = document.getElementById("projAssocie");
+                select.innerHTML = appState.associes.map(a => `<option value="${a.nom}">${a.nom}</option>`).join("");
+                document.getElementById("projFilesInput").value = "";
+            }
+            if (id === 'modalFacture') {
+                if (!document.getElementById("editFacId").value) {
+                    document.getElementById("modalFactureTitle").textContent = "Émettre une Facture ($ USD)";
+                    document.getElementById("editFacId").value = "";
+                    document.getElementById("facClient").value = "";
+                    document.getElementById("facMontant").value = "";
+                    document.getElementById("facMontantPaye").value = "0";
+                    updateFactureRestePreview();
+                }
+            }
+            if (id === 'modalDepense') document.getElementById("depDate").value = new Date().toISOString().slice(0, 10);
+            if (id === 'modalTravailleur') document.getElementById("travDate").value = new Date().toISOString().slice(0, 10);
+
+            const modal = document.getElementById(id);
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            lucide.createIcons();
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            if (id === 'modalFacture') {
+                document.getElementById("editFacId").value = "";
+            }
+        }
+
+        async function handleCreateProjet(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            const fileInput = document.getElementById("projFilesInput");
+            const files = fileInput.files ? await readFilesAsObjects(fileInput.files) : [];
+
+            appState.projets.unshift({
+                id: Date.now(),
+                titre: document.getElementById("projTitre").value.trim(),
+                client: document.getElementById("projClient").value.trim(),
+                pole: document.getElementById("projPole").value,
+                budget: Number(document.getElementById("projBudget").value),
+                statut: "En cours",
+                associe: document.getElementById("projAssocie").value,
+                documents: files
+            });
+            saveState();
+            closeModal("modalProjet");
+            e.target.reset();
+            renderAll();
+            showToast("Projet ajouté.", "success");
+        }
+
+        function handleCreateAssocie(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            appState.associes.push({
+                id: Date.now(),
+                nom: document.getElementById("assocNom").value.trim(),
+                role: document.getElementById("assocRole").value.trim(),
+                pole: document.getElementById("assocPole").value,
+                part: Number(document.getElementById("assocPart").value) || 0,
+                email: "contact@gmconsulting.com"
+            });
+            saveState();
+            closeModal("modalAssocie");
+            e.target.reset();
+            renderAll();
+            showToast("Associé ajouté.", "success");
+        }
+
+        function handleSaveFacture(e) {
+            e.preventDefault();
+            if (appState.role !== "admin") return;
+            const editId = document.getElementById("editFacId").value;
+            const total = Number(document.getElementById("facMontant").value) || 0;
+            const paye = Math.min(total, Number(document.getElementById("facMontantPaye").value) || 0);
+            
+            if (editId) {
+                const fac = appState.factures.find(f => f.id === editId);
+                if (fac) {
+                    fac.client = document.getElementById("facClient").value.trim();
+                    fac.pole = document.getElementById("facPole").value;
+                    fac.montant = total;
+                    fac.montantPaye = paye;
+                    const norm = normalizeFacture(fac);
+                    fac.statut = norm.statut;
+                }
+                showToast("Facture modifiée.", "success");
+            } else {
+                const num = Math.floor(100 + Math.random() * 900);
+                const newFac = normalizeFacture({
+                    id: `INV-2026-${num}`,
+                    client: document.getElementById("facClient").value.trim(),
+                    pole: document.getElementById("facPole").value,
+                    date: new Date().toISOString().split('T')[0],
+                    montant: total,
+                    montantPaye: paye
+                });
+                appState.factures.unshift(newFac);
+                showToast("Facture générée.", "success");
+            }
+            saveState();
+            closeModal("modalFacture");
+            document.getElementById("editFacId").value = "";
+            e.target.reset();
+            renderAll();
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const link = document.createElement("a");
+            link.setAttribute("href", dataStr);
+            link.setAttribute("download", `GM_Consulting_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast("Téléchargé.", "success");
+        }
+
+        function importJSON(event) {
+            if (appState.role !== "admin") return;
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.associes && imported.projets) {
+                        appState.meta = imported.meta || appState.meta;
+                        appState.associes = imported.associes;
+                        appState.projets = imported.projets;
+                        appState.factures = (imported.factures || []).map(normalizeFacture);
+                        saveState();
+                        renderAll();
+                        showToast("Importé.", "success");
+                    }
+                } catch (err) {
+                    showToast("Fichier invalide.", "info");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = "pointer-events-auto flex items-center gap-2.5 bg-navy-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 text-xs sm:text-sm font-medium fade-in";
+            toast.innerHTML = `<span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : 'bg-amber-400'}"></span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transition = "opacity 0.3s ease";
+                setTimeout(() => toast.remove(), 300);
+            }, 2800);
+        }
+    </script>
+</body>
+</html>
